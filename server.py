@@ -5,19 +5,18 @@ import json
 import subprocess
 
 from arelight.arekit.sample_service import AREkitSamplesService
-from os.path import join
+from os.path import join, dirname, realpath
 from tqdm import tqdm
-from pathlib import Path
 
 from flask_cors import CORS
 
 
 ARELIGHT_IS_RUNNING = False
 
-cur_dir = Path(__file__).resolve()
+cur_dir = dirname(realpath(__file__))
 
 SETTINGS = {
-    "path_to_arelight": , r"arelight", r"run", r"infer.py"),
+    "installed_arelight": "arelight.run.infer",
     "path_to_raw_data": join(cur_dir, r"raw_data"),
     "path_to_arelight_log": join(cur_dir, r"arelight.log"),
     "path_to_force_data": join(cur_dir, r"output", r"force"),
@@ -253,7 +252,7 @@ def upload_file():
                 args += ["--" + arg + "=" + SETTINGS["arelight_const_args"][arg]]
             print("     RUNNING ARELIGHT")
             __generate_arelight_log__(clean=True)
-            subprocess.run(['python', SETTINGS["path_to_arelight"], "--from-files", filename, "--log-file", SETTINGS["path_to_arelight_log"]] + args, check=True)
+            subprocess.run(['python3', '-m', SETTINGS["installed_arelight"], "--from-files", filename, "--log-file", SETTINGS["path_to_arelight_log"]] + args, check=True)
             __update_data_status__(filename, 'completed')
         except Exception as e:
             __update_data_status__(filename, f'error: {str(e)}')
@@ -268,7 +267,6 @@ def upload_file():
                 f.save(file_path)
                 options = {key: "|".join(request.form.getlist(key)) if key == 'ner-types' else request.form.get(key)
                            for key in request.form.keys()}
-                print("OPTIONS", options)
                 arelight_thread = Thread(target=run_arelight, args=(file_path, options))
                 arelight_thread.start()
                 __set_data_status__(file_path, options)
