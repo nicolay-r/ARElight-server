@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+
+    /*.links line {*/
+    /*    stroke: #999;*/
+    /*    stroke-opacity: 0.6;*/
+    /*}*/
+
+    .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+    }
+
+    @keyframes pulsate {
+        0% {
+            filter: drop-shadow(0 0 5px rgba(68, 68, 68, 0.48));
+        }
+        50% {
+            filter: drop-shadow(0 0 10px rgba(136, 136, 136, 0.55));
+        }
+        100% {
+            filter: drop-shadow(0 0 5px rgba(68, 68, 68, 0.49));
+        }
+    }
+
+    svg {
+        animation: pulsate 10s infinite ease-in-out;
+    }
+
+
+    /*.link {*/
+    /*    stroke: steelblue;*/
+    /*    stroke-opacity: 0.5;*/
+    /*    fill: none;*/
+    /*    pointer-events: none;*/
+    /*}*/
+
+    text {
+        font: 10px sans-serif;
+        /*pointer-events: none;*/
+        text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+    }
+
+    .red-text {
+        color: #b42323;
+    }
+
+    .blue-text {
+        color: #2850b4;
+    }
+
+    .grey-text {
+        color: #979797;
+    }
+
+    hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px 10px 10px; /* Added padding to top */
+        margin: 10px;
+        position: relative;
+        font-size: 12px; /* Smaller font size */
+        max-width: 400px;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card .filename {
+        position: absolute;
+        top: 5px;
+        left: 10px;
+        font-size: 10px; /* Smaller font size */
+        font-weight: bold;
+    }
+
+    .card.show {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .pos {
+        background-color: #4c86af; /* Nice green */
+        color: white;
+    }
+
+    .neg {
+        background-color: #e84f44; /* Nice red */
+        color: white;
+    }
+
+    .neu {
+        background-color: #bbbbbb; /* Nice grey */
+        color: white;
+    }
+
+</style>
+
+<body>
+
+<head>
+    <title>Arelight Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<div class="container">
+    <h1>ARElight-0.24.0 Demo</h1>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <div>
+
+                <style>
+                    .btn-container {
+                        display: flex;
+                        justify-content: space-between; /* Distributes space between buttons */
+                    }
+
+                    .btn-container .btn {
+                        flex-grow: 1; /* Makes buttons grow to fill the container */
+                        margin: 0 2px; /* Optional: adds a small margin between buttons */
+                    }
+
+                    .btn-container .btn:first-child,
+                    .btn-container .btn:last-child {
+                        margin-left: 0;
+                        margin-right: 0;
+                    }
+                </style>
+
+                <div class="btn-container">
+                    <button id="new_data" type="button" class="btn btn-warning" onclick="settings_btn(this)">new data
+                    </button>
+                    <button id="vis_settings" type="button" class="btn btn-light" onclick="settings_btn(this)">vis
+                    </button>
+                    <!--                    <button id="animate" type="button" class="btn btn-light" onclick="settings_btn(this)">animate-->
+                    <!--                    </button>-->
+                    <button id="operations" type="button" class="btn btn-light" onclick="settings_btn(this)">operate
+                    </button>
+                    <button id="details" type="button" class="btn btn-light" onclick="settings_btn(this)">details
+                    </button>
+                </div>
+
+                <div id="new_data_div">
+                    <div>
+                        <h4>Upload new data to ARElight:</h4>
+                    </div>
+                    <form method=post enctype=multipart/form-data>
+                        <div>
+                            <input type=file name=file id="file" onchange="checkFileSelected()"><br><br>
+                        </div>
+                        <div>
+                            <input id="submit_data_BTN" type=submit value=Upload disabled>
+                        </div>
+                        <hr>
+                        <div>
+                            <h4>ARElight settings:</h4>
+                        </div>
+                        <div>
+                            <!--ARELIGHT ARGUMENTS-->
+                        </div>
+
+                    </form>
+                </div>
+
+                <div id="vis_settings_div">
+                    <div>
+                        <h4>Visualise existing data:</h4>
+                    </div>
+
+                    <small class="form-text text-muted">Select dataset to visualise:</small>
+                    <select id="file_selector" class="form-control" onchange="showFileDetails()">
+                        <!--                    UPLOADED FILES-->
+                    </select>
+
+                    <script>
+                        function validateInput(id, min, max) {
+                            var input = document.getElementById(id);
+                            if (isNaN(input.value) || input.value === "") {
+                                if (isNaN(max)) {
+                                    input.value = 100;
+                                } else {
+                                    input.value = max;
+                                }
+                            } else if (input.value < min) {
+                                input.value = min;
+                            } else if (!isNaN(max) && input.value > max) {
+                                input.value = max;
+                            }
+                        }
+                    </script>
+
+                    <div class="form-group">
+                        <!--                            <label for="node_freq">Vertex frequency:</label>-->
+                        <small class="form-text text-muted">Leave the most frequent vertices from 2 to
+                            Inf.</small>
+                        <input type="number" class="form-control" id="node_freq" placeholder="100" value="100"
+                               min="2" onchange="validateInput('node_freq', 2, NaN); visualise();">
+
+                    </div>
+                    <div class="form-group">
+                        <!--                            <label for="edge_scale">Edge width:</label>-->
+                        <small class="form-text text-muted">Scale x% of thickness for edges if you need from 0
+                            to
+                            Inf.</small>
+                        <input type="number" class="form-control" id="edge_scale" placeholder="100" value="100"
+                               onchange="validateInput('edge_scale', 0, NaN); visualise();">
+
+                    </div>
+                    <div class="form-group">
+                        <!--                            <label for="edge_opacity">Edge opacity:</label>-->
+                        <small class="form-text text-muted">Scale x% of opacity for edges if you need from 0 to
+                            1.</small>
+                        <input type="number" class="form-control" id="edge_opacity" placeholder="0.5"
+                               value="0.5" step="0.1"
+                               onchange="validateInput('edge_opacity', 0, 1); visualise();">
+
+                    </div>
+                    <div class="form-group">
+                        <!--                            <label for="force_scale">Force scale:</label>-->
+                        <small class="form-text text-muted">Only for force graph: vertex repulsion force from 0
+                            to
+                            Inf.</small>
+                        <input type="number" class="form-control" id="force_scale" placeholder="100" value="100"
+                               onchange="validateInput('force_scale', 1, NaN); visualise();">
+
+                    </div>
+
+                    <small class="form-text text-muted">Remove unnecessary links of you need:</small>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check_positive" checked
+                               onchange="visualise()">
+                        <label class="form-check-label" for="check_positive">Display <span
+                                class="blue-text">positive</span> edges</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check_negative" checked
+                               onchange="visualise()">
+                        <label class="form-check-label" for="check_negative">Display <span
+                                class="red-text">negative</span> edges</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check_neutral" checked
+                               onchange="visualise()">
+                        <label class="form-check-label" for="check_neutral">Display <span
+                                class="grey-text">neutral</span> edges</label>
+                    </div>
+
+                    <small class="form-text text-muted">Dataset status:</small>
+                    <div id="file_details" style="border: 1px solid lightgrey;"></div>
+
+
+                </div>
+
+                <style>
+                    .input-group-custom {
+                        display: flex;
+                        align-items: stretch; /* Ensure the select and button are vertically aligned correctly */
+                    }
+
+                    .input-group-custom select.form-control {
+                        flex-grow: 1; /* Allow the select element to grow and fill the available space */
+                    }
+
+                    .input-group-custom input[type="submit"] {
+                        margin-left: 8px; /* Add some space between the select and the button */
+                    }
+                </style>
+                <!--                <div id="animate_div">-->
+                <!--                    <div>-->
+                <!--                        <h4>Animate timeline based on existing datasets:</h4>-->
+                <!--                    </div>-->
+                <!--                    <form method="post" enctype="multipart/form-data">-->
+                <!--                        <div class="row">-->
+                <!--                            <div class="col-md-12">-->
+                <!--                                <small class="form-text text-muted">Name of new dataset:</small>-->
+                <!--                                <input type="text" class="form-control" id="animations_new_dataset_name">-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                        <div class="row">-->
+                <!--                            <div class="col-md-12">-->
+                <!--                                <small class="form-text text-muted">Select dataset for new frame:</small>-->
+                <!--                                <div class="input-group input-group-custom">-->
+                <!--                                    <select id="file_selector_animations" class="form-control">-->
+                <!--                                        &lt;!&ndash;                    UPLOADED FILES&ndash;&gt;-->
+                <!--                                    </select>-->
+                <!--                                    <input id="file_selector_animations_BTN" type="submit" value="Add"-->
+                <!--                                           class="btn btn-primary">-->
+                <!--                                </div>-->
+
+                <!--                                <small class="form-text text-muted">Selected frames:</small>-->
+                <!--                                <div id="file_selector_animations_selected_files">-->
+                <!--                                    &lt;!&ndash;                    SELECTED ANIMATION FILES&ndash;&gt;-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                        <button class="btn btn-light btn-secondary animate-btn" onclick="OperationAnimate()">Generate-->
+                <!--                        </button>-->
+                <!--                    </form>-->
+                <!--                </div>-->
+
+                <div id="operations_div">
+                    <div>
+                        <h4>Generate new datasets with graph operations:</h4>
+                    </div>
+                    <form method=post enctype=multipart/form-data>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <small class="form-text text-muted">Name of new dataset:</small>
+                                <input type="text" class="form-control" id="operations_new_dataset_name">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <small class="form-text text-muted">Select dataset A:</small>
+                                <div class="input-group input-group-custom">
+                                    <select id="file_selector_operations_A" class="form-control">
+                                        <!--                    UPLOADED FILES-->
+                                    </select>
+                                    <input id="file_selector_operations_A_BTN" type="submit" value="Add"
+                                           class="btn btn-primary">
+                                </div>
+
+                                <div>
+                                    <small class="form-text text-muted">Selected datasets for A:</small>
+                                    <div id="file_selector_operations_A_selected_files">
+                                        <!--                    SELECTED A FILES-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <small class="form-text text-muted">Select operation:</small>
+                                <select id="operations_selector_operations" class="form-control">
+                                    <option>UNION</option>
+                                    <option>INTERSECTION</option>
+                                    <option>DIFFERENCE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <small class="form-text text-muted">Select dataset B:</small>
+                                <div class="input-group input-group-custom">
+                                    <select id="file_selector_operations_B" class="form-control">
+                                        <!--                    UPLOADED FILES-->
+                                    </select>
+                                    <input id="file_selector_operations_B_BTN" type="submit" value="Add"
+                                           class="btn btn-primary">
+                                </div>
+
+                                <div>
+                                    <small class="form-text text-muted">Selected datasets for B:</small>
+                                    <div id="file_selector_operations_B_selected_files">
+                                        <!--                    SELECTED B FILES-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button class="btn btn-light btn-secondary generate-btn" onclick="OperationGenerate()">
+                                    Generate
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="details_div"></div>
+
+            </div>
+
+        </div>
+
+        <div class="col-sm-8">
+
+            <div class="row-xs-1 center-block">
+                <button id="force_BTN" type="button" class="btn btn-primary" onclick="force_BTN()">
+                    Force Layout
+                </button>
+                <button id="radial_BTN" type="button" class="btn btn-primary" onclick="radial_BTN()">
+                    Radial Layout
+                </button>
+            </div>
+            <div style="padding-top: 10px" align="center" id="svg_container">
+                <svg></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+    function checkFileSelected() {
+            var fileInput = document.getElementById('file');
+            var submitButton = document.getElementById('submit_data_BTN');
+            if (fileInput.files.length > 0) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+    function getRandomSample(arr, sampleSize) {
+        if (sampleSize > arr.length) {
+            throw new Error("Sample size cannot be larger than the array length");
+        }
+
+        const shuffled = arr.slice().sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, sampleSize);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // SETTINGS BUTTONS
+    //////////////////////////////////////////////////////////////////////////////
+    function settings_btn(button) {
+        function toggleDivVisibility(btn_id, showFlag) {
+            document.getElementById(btn_id + "_div").style.display = showFlag ? '' : 'none';
+            let btn_obj = document.getElementById(btn_id);
+            btn_obj.classList.remove('btn-light', 'btn-warning');
+            btn_obj.classList.add(showFlag ? 'btn-warning' : 'btn-light');
+        }
+
+        const buttonIds = ["new_data", "vis_settings",
+            // "animate",
+            "operations", "details"];
+        buttonIds.forEach(btn_id => {
+            toggleDivVisibility(btn_id, false);
+        });
+        toggleDivVisibility(button.id, true);
+    }
+
+    settings_btn(document.getElementById("new_data"))
+
+    //////////////////////////////////////////////////////////////////////////////
+    // SERVER REQUESTS
+    //////////////////////////////////////////////////////////////////////////////
+    function UPLOAD_DATA(data) {
+        fetch('/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    function REQUEST_DATA(req, callback) {
+        fetch("http://127.0.0.1:8080/" + req, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(response);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                // Invoke the callback function with the response data
+                callback(data);
+            })
+            .catch((error) => {
+                // Handle errors here
+                console.error(error);
+            });
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // LOAD FILES INTO SELECTORS & VISUALISATION TRIGGERS
+    //////////////////////////////////////////////////////////////////////////////
+    function showFileDetails() {
+        console.log("file_status?file=" + document.getElementById('file_selector').value)
+        REQUEST_DATA("file_status?file=" + document.getElementById('file_selector').value, (data) => {
+            details = data.data;
+            document.getElementById('file_details').innerText = JSON.stringify(details, null, 2);
+            visualise()
+        });
+    }
+
+    function updateListOfFiles() {
+        REQUEST_DATA('available_files', (data) => {
+            const statusElement = document.getElementById('file_selector');
+            const statusElement_A = document.getElementById('file_selector_operations_A');
+            const statusElement_B = document.getElementById('file_selector_operations_B');
+            // const statusElement_Animation = document.getElementById('file_selector_animations');
+            if (statusElement) {
+                res = ""
+                for (var i = 0; i < data.length; i++) {
+                    res += "<option>" + data[i] + "</option>>"
+                }
+                statusElement.innerHTML = res;
+                statusElement_A.innerHTML = res;
+                statusElement_B.innerHTML = res;
+                // statusElement_Animation.innerHTML = res;
+            }
+            showFileDetails()
+        });
+
+    }
+
+    updateListOfFiles()
+    showFileDetails()
+
+    //////////////////////////////////////////////////////////////////////////////
+    // ANIMATION TRIGGERS
+    //////////////////////////////////////////////////////////////////////////////
+    // document.getElementById("file_selector_animations_BTN").addEventListener("click", function (e) {
+    //     e.preventDefault(); // Prevents the default submit action
+    //     // Get selected option's text
+    //     var selector = document.getElementById("file_selector_animations");
+    //     var selectedText = selector.options[selector.selectedIndex].text;
+    //     // Create a new div for the selected file and remove button
+    //     var fileDiv = document.createElement("div");
+    //     fileDiv.innerHTML = selectedText + " <button type='button' class='remove-btn-Animation btn btn-danger'>Remove</button>";
+    //     // Append this div to the selected files container
+    //     document.getElementById("file_selector_animations_selected_files").appendChild(fileDiv);
+    //     // Add event listener to the Remove button
+    //     fileDiv.querySelector(".remove-btn-Animation").addEventListener("click", function () {
+    //         fileDiv.remove(); // Remove the file entry on click
+    //     });
+    // });
+
+    // function OperationAnimate() {
+    //     var selectedFilesArray = [];
+    //     var selectedFilesContainer = document.getElementById("file_selector_animations_selected_files");
+    //     var selectedNewDatasetName = document.getElementById("animations_new_dataset_name").value;
+    //     // Iterate over all child divs in the selected files container
+    //     selectedFilesContainer.childNodes.forEach(function (node) {
+    //         if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
+    //             var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
+    //             selectedFilesArray.push(text);
+    //         }
+    //     });
+    //     UPLOAD_DATA({"animate": selectedFilesArray, "filename": selectedNewDatasetName})
+    // }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // OPERATION TRIGGERS
+    //////////////////////////////////////////////////////////////////////////////
+    document.getElementById("file_selector_operations_A_BTN").addEventListener("click", function (e) {
+        e.preventDefault(); // Prevents the default submit action
+
+        // Get selected option's text
+        var selector = document.getElementById("file_selector_operations_A");
+        var selectedText = selector.options[selector.selectedIndex].text;
+
+        // Create a new div for the selected file and remove button
+        var fileDiv = document.createElement("div");
+
+        // fileDiv.innerHTML = selectedText + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
+        fileDiv.innerHTML = "<button type='button' className='btn btn-outline-info btn-sm' style='border: none;' disabled>" +
+            selectedText + "</button>" + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
+
+        // Append this div to the selected files container
+        document.getElementById("file_selector_operations_A_selected_files").appendChild(fileDiv);
+
+        // Add event listener to the Remove button
+        fileDiv.querySelector(".remove-btn-A").addEventListener("click", function () {
+            fileDiv.remove(); // Remove the file entry on click
+        });
+    });
+    document.getElementById("file_selector_operations_B_BTN").addEventListener("click", function (e) {
+        e.preventDefault(); // Prevents the default submit action
+
+        // Get selected option's text
+        var selector = document.getElementById("file_selector_operations_B");
+        var selectedText = selector.options[selector.selectedIndex].text;
+
+        // Create a new div for the selected file and remove button
+        var fileDiv = document.createElement("div");
+        fileDiv.innerHTML = selectedText + " <button class='remove-btn-B btn btn-danger'>Remove</button>";
+
+        // Append this div to the selected files container
+        document.getElementById("file_selector_operations_B_selected_files").appendChild(fileDiv);
+
+        // Add event listener to the Remove button
+        fileDiv.querySelector(".remove-btn-B").addEventListener("click", function () {
+            fileDiv.remove(); // Remove the file entry on click
+        });
+    });
+
+    function OperationGenerate() {
+        var selectedFilesArray_A = [];
+        var selectedFilesArray_B = [];
+        var selectedFilesContainer_A = document.getElementById("file_selector_operations_A_selected_files");
+        var selectedFilesContainer_B = document.getElementById("file_selector_operations_B_selected_files");
+        var selectedOperation = document.getElementById("operations_selector_operations").value;
+        var selectedNewDatasetName = document.getElementById("operations_new_dataset_name").value;
+
+        // Iterate over all child divs in the selected files container
+        selectedFilesContainer_A.childNodes.forEach(function (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
+                var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
+                selectedFilesArray_A.push(text);
+            }
+        });
+        selectedFilesContainer_B.childNodes.forEach(function (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
+                var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
+                selectedFilesArray_B.push(text);
+            }
+        });
+
+        UPLOAD_DATA({
+            "operation": {
+                "A": selectedFilesArray_A,
+                "B": selectedFilesArray_B,
+                "O": selectedOperation,
+                "D": selectedNewDatasetName
+            }
+        })
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // VISUALISATION TRIGGERS
+    //////////////////////////////////////////////////////////////////////////////
+    const height = window.innerHeight * 0.8;
+    const width = window.innerWidth * 0.5;
+    let selected_vis = "force"
+    document.querySelector('#radial_BTN').classList.remove('disabled');
+    document.querySelector('#force_BTN').classList.remove('disabled');
+    document.querySelector('#force_BTN').classList.add('disabled');
+    const folder_with_datasets_path = "http://127.0.0.1:8080/"
+    let previous_dataset = ""
+    const optimal_numer_of_nodes = 50
+    const optimal_numer_of_links = 1000
+
+    function force_BTN() {
+        selected_vis = "force"
+        document.querySelector('#radial_BTN').classList.remove('disabled');
+        document.querySelector('#force_BTN').classList.remove('disabled');
+        document.querySelector('#force_BTN').classList.add('disabled');
+        let dataset_name = document.getElementById("file_selector").value;
+        draw_force(dataset_name)
+    }
+
+    function radial_BTN() {
+        selected_vis = "radial"
+        document.querySelector('#radial_BTN').classList.remove('disabled');
+        document.querySelector('#force_BTN').classList.remove('disabled');
+        document.querySelector('#radial_BTN').classList.add('disabled');
+        let dataset_name = document.getElementById("file_selector").value;
+        draw_radial(dataset_name)
+    }
+
+    function visualise() {
+        let selected_dataset = document.getElementById("file_selector").value;
+        if (selected_vis === "force") {
+            draw_force(selected_dataset)
+        } else {
+            draw_radial(selected_dataset)
+        }
+    }
+
+    function get_draw_parameters() {
+        const getValidValue = (selector, defaultValue, isBoolean = false) => {
+            const value = d3.select(selector).property(isBoolean ? "checked" : "value");
+            return isBoolean ? value : (isNaN(value) ? defaultValue : value);
+        };
+
+        const links_scale = getValidValue("#edge_scale", 100);
+        const opacity_scale = getValidValue("#edge_opacity", 0.5);
+        const force_scale = getValidValue("#force_scale", 0.5);
+        const node_freq = getValidValue("#node_freq", 100);
+
+        const check_positive = getValidValue("#check_positive", false, true);
+        const check_negative = getValidValue("#check_negative", false, true);
+        const check_neutral = getValidValue("#check_neutral", false, true);
+
+        return [links_scale / 100, check_positive, check_negative, check_neutral, opacity_scale, force_scale, node_freq];
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // DETAILS REQUEST AND CARDS CREATION
+    //////////////////////////////////////////////////////////////////////////////
+
+    function createCards(dataArray) {
+        const detailsDiv = document.getElementById('details_div');
+
+        // Remove all previous cards with a transition effect
+        const oldCards = document.querySelectorAll('.card');
+        oldCards.forEach(card => {
+            card.classList.remove('show');
+            setTimeout(() => {
+                card.remove();
+            }, 200); // Match the transition duration in CSS
+        });
+
+        // Create new cards
+        setTimeout(() => {
+            dataArray.forEach(item => {
+                // Create card div
+                const card = document.createElement('div');
+                card.className = `card ${item.label}`;
+
+                // Create filename element
+                const filename = document.createElement('div');
+                filename.className = 'filename';
+                filename.textContent = item.filename;
+
+                // Create text content
+                const textContent = document.createElement('div');
+                textContent.className = 'text';
+                textContent.textContent = item.text.join(' ');
+
+                // Append elements to the card
+                card.appendChild(filename);
+                card.appendChild(textContent);
+
+                // Append card to the details div
+                detailsDiv.appendChild(card);
+
+                // Trigger transition
+                setTimeout(() => {
+                    card.classList.add('show');
+                }, 10); // Small delay to ensure the class addition triggers the transition
+            });
+        }, 300); // Match the transition duration in CSS
+    }
+
+    async function getDetails(links, draw_parameters, basis) {
+        console.log(basis)
+        try {
+            const response = await fetch('/details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"links": links, "draw_parameters": draw_parameters, "basis": basis}),
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Success:', data);
+
+            if (data["results"].length > 10){
+                createCards(getRandomSample(data["results"], 10))
+            }else{
+                createCards(data["results"])
+            }
+
+            document.getElementById('details').click()
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // FORCE LAYOUT
+    //////////////////////////////////////////////////////////////////////////////
+    function filterNodesOptimal(nodes, links) {
+        let original_number_of_nodes = nodes.length
+        let optimal = optimal_numer_of_nodes
+        if (optimal < nodes.length) {
+            nodes.sort((a, b) => b.c - a.c)
+            nodes = nodes.slice(0, optimal)
+            var nodeIds = new Set(nodes.map(node => node.id))
+            var n_links = links.filter(link => nodeIds.has(link.source) && nodeIds.has(link.target)).length
+
+            while (n_links > optimal_numer_of_links || optimal < 2) {
+                console.log("   NOT optimal:", nodes.length, n_links)
+                optimal -= 1
+                nodes = nodes.slice(0, optimal)
+                nodeIds = new Set(nodes.map(node => node.id))
+                n_links = links.filter(link => nodeIds.has(link.source) && nodeIds.has(link.target)).length
+            }
+            console.log("optimal:", nodes.length, n_links)
+            document.getElementById('node_freq').value = optimal
+        } else {
+            document.getElementById('node_freq').value = nodes.length
+        }
+        return nodes
+    }
+
+    function filterLinksForce(nodes, links) {
+        const nodeIds = new Set(nodes.map(node => node.id));
+        return links.filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
+    }
+
+    function filterNodes(array, itemsToKeep) {
+        if (array.length > itemsToKeep) {
+            array.sort((a, b) => b.c - a.c);
+            console.log("filter:", array.length, itemsToKeep)
+            document.getElementById('node_freq').value = itemsToKeep
+            return array.slice(0, itemsToKeep);
+        }
+        console.log("ok:", array.length, itemsToKeep)
+        document.getElementById('node_freq').value = array.length
+        return array
+    }
+
+    function draw_force(dataset_name) {
+        d3.select("svg").remove()
+        let draw_parameters = get_draw_parameters();
+
+        d3.json(folder_with_datasets_path + "/get_force_data?file=" + dataset_name, function (error, graph) {
+
+            console.log(graph)
+            console.log("previous & new datasets:", previous_dataset, dataset_name)
+            if (previous_dataset === dataset_name) {
+                graph.nodes = filterNodes(graph.nodes, draw_parameters[6])
+            } else {
+                graph.nodes = filterNodesOptimal(graph.nodes, graph.links)
+            }
+            previous_dataset = dataset_name
+
+            graph.links = filterLinksForce(graph.nodes, graph.links)
+
+
+            let svg = d3.select("#svg_container").append("svg");
+            svg.attr("width", width);
+            svg.attr("height", height);
+            // svg.attr("style", "outline: thin solid black;");
+
+            let simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(150))
+                .force("charge", d3.forceManyBody().strength(-1 * draw_parameters[5]))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            let link = svg.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(graph.links)
+                .enter().append("line")
+                .attr("stroke-width", d => d.c * 30 * draw_parameters[0])
+                .attr('opacity', d => ["pos", "neg", "neu"].includes(d.sent) && !draw_parameters[{
+                    "pos": 1,
+                    "neg": 2,
+                    "neu": 3
+                }[d.sent]] ? 0 : draw_parameters[4])
+                .style('stroke', d => {
+                    const colorMap = {"pos": "blue", "neg": "red", "neu": "grey"};
+                    return colorMap[d.sent] || "pink";
+                });
+
+            let node = svg.selectAll(".node")
+                .data(graph.nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended))
+                .on("click", show_selected);
+
+            svg.append("defs").selectAll("marker")
+                .data(["arrow"])
+                .enter().append("marker")
+                .attr("id", d => d)
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 2)
+                .attr("refY", 0)
+                .attr("markerWidth", 2)
+                .attr("markerHeight", 2)
+                .attr('opacity', 1)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "black") // Ensure the path has a fill color
+                .attr("stroke", "black");
+
+            let selectionState = "none"
+            let selectedNodeId = -1
+
+            function show_selected(node) {
+                const transitionTime = 300;
+                const opacityHidden = 0;
+                const opacityVisible = 1;
+                const markerEndArrow = 'url(#arrow)';
+                const markerEndNone = '';
+
+                function applyTransition(link, opacity, markerEnd) {
+                    link.transition().duration(transitionTime)
+                        .attr('opacity', function (d) {
+
+                            if (opacity === 1) {
+                                return ["pos", "neg", "neu"].includes(d.sent) && !draw_parameters[{
+                                    "pos": 1,
+                                    "neg": 2,
+                                    "neu": 3
+                                }[d.sent]] ? 0 : draw_parameters[4]
+                            }
+                            return 0
+                        })
+                        .attr('marker-end', markerEnd);
+                }
+
+                if (-1 === selectedNodeId || node.id === selectedNodeId) {
+                    switch (selectionState) {
+                        case "none":
+                            applyTransition(link, opacityHidden, markerEndNone);
+                            selection = link.filter(d => d.source === node);
+                            applyTransition(selection, opacityVisible, markerEndArrow);
+                            selectionState = "node_out";
+                            selectedNodeId = node.id;
+                            break;
+                        case "node_out":
+                            applyTransition(link, opacityHidden, markerEndNone);
+                            selection = link.filter(d => d.target === node);
+                            applyTransition(selection, opacityVisible, markerEndArrow);
+                            selectionState = "node_in";
+                            selectedNodeId = node.id;
+                            break;
+                        case "node_in":
+                            applyTransition(link, opacityVisible, markerEndNone);
+                            selectionState = "none";
+                            selectedNodeId = -1;
+                            break;
+                        case "link":
+                            applyTransition(link, opacityVisible, markerEndNone);
+                            selectionState = "none";
+                            selectedNodeId = -1;
+                            break;
+                    }
+                } else {
+                    applyTransition(link, opacityHidden, markerEndNone);
+                    selectedLinks = link.filter(d => d.source.id === selectedNodeId && d.target.id === node.id);
+                    console.log(selectedLinks.size())
+                    if (selectedLinks.size() > 0) {
+                        applyTransition(selectedLinks, opacityVisible, markerEndArrow);
+                        selectionState = "link";
+                        selectedNodeId = -1;
+                    } else {
+                        applyTransition(link, opacityVisible, markerEndNone);
+                        selectionState = "none";
+                        selectedNodeId = -1;
+                    }
+                }
+
+
+                setTimeout(() => {
+                    let visibleLinks = [];
+                    d3.selectAll(".links line").each(function (d) {
+                        if (d3.select(this).attr("opacity") > 0) {
+                            visibleLinks.push(d);
+                        }
+                    });
+                    getDetails(visibleLinks, draw_parameters, graph.basis).then(data => {
+                        console.log(data["results"]);
+                    }).catch(err => console.log(err));
+                }, transitionTime * 4);
+            }
+
+            node.append("circle")
+                .attr("r", d => 10)
+                .attr("fill", d => "black")
+                .attr('fill-opacity', d => d.c / 17249)
+
+            node.append("text")
+                .text(d => d.id);
+
+            simulation
+                .nodes(graph.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graph.links);
+
+            function ticked() {
+                link.attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y)
+
+                const padding = 10;
+                node.attr("transform", function (d) {
+                    d.x = Math.max(padding, Math.min(width - padding, d.x));
+                    d.y = Math.max(padding, Math.min(height - padding, d.y));
+                    return `translate(${d.x},${d.y})`;
+                });
+            }
+
+            function dragstarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+
+            function dragended(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        });
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // RADIAL LAYOUT
+    //////////////////////////////////////////////////////////////////////////////
+
+    function filterLinksRadial(nodes) {
+        const nodeIds = new Set(nodes.map(node => node.name));
+        for (var i = 0; i < nodes.length; i++) {
+            if (!("imports" in nodes[i])) {
+                nodes[i]["imports"] = []
+            }
+            nodes[i].imports = nodes[i].imports.filter(link => nodeIds.has(link.name))
+        }
+        return nodes;
+    }
+
+    function draw_radial(dataset_name) {
+        d3.select("svg").remove()
+        var draw_parameters = get_draw_parameters();
+
+        var transition_time = 300
+        var diameter = width,
+            radius = diameter / 2,
+            innerRadius = radius * 0.8;
+        var cluster = d3.cluster()
+            .size([360, innerRadius]);
+        var line = d3.radialLine()
+            .curve(d3.curveBundle.beta(0.85))
+            .radius(d => d.y)
+            .angle(d => d.x / 180 * Math.PI);
+
+        var svg = d3.select("#svg_container").append("svg");
+        // svg.attr("style", "outline: thin solid black;");
+        svg.attr("id", "svg")
+            .attr("width", diameter)
+            .attr("height", diameter);
+        svg = svg.append("g")
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+        var link = svg.append("g").selectAll(".link"),
+            node = svg.append("g").selectAll(".node");
+
+        svg.append("defs").selectAll("marker")
+            .data(["arrow"])
+            .enter().append("marker")
+            .attr("id", d => d)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 2)
+            .attr("refY", 0)
+            .attr("markerWidth", 4)
+            .attr("markerHeight", 4)
+            .attr('opacity', 1)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "black") // Ensure the path has a fill color
+            .attr("stroke", "black");
+
+        let selectionState = "none";
+        let selectedNodeId = -1;
+
+        d3.json(folder_with_datasets_path + "/get_radial_data?file=" + dataset_name, function (error, classes) {
+            if (error) throw error;
+
+            classes = filterNodes(classes, draw_parameters[6])
+            classes = filterLinksRadial(classes)
+
+            function calculate_opacity(d) {
+                const target = d.target.data.name;
+                const source = d.source.data.imports.find(s => s.name === target);
+                if (source && ["pos", "neg", "neu"].includes(source.sent) && !draw_parameters[{
+                    "pos": 1,
+                    "neg": 2,
+                    "neu": 3
+                }[source.sent]]) {
+                    return 0;
+                }
+                return (source ? source.w * 10 : 1) * draw_parameters[4];
+            }
+
+            function calculate_color(d) {
+                const target = d.target.data.name;
+                const source = d.source.data.imports.find(s => s.name === target);
+                const colorMap = {"neg": "red", "pos": "blue", "neu": "grey"}
+                return source ? (colorMap[source.sent] || "black") : "black";
+            }
+
+            var root = packageHierarchy(classes).sum(d => d.w);
+            cluster(root);
+            link = link
+                .data(packageImports(root.leaves()))
+                .enter().append("path")
+                .each(d => {
+                    d.source = d[0];
+                    d.target = d[d.length - 1];
+                })
+                .attr("class", "link")
+                .attr("d", line)
+                .attr("id", d => d.data !== undefined ? null : `${d.target.data.name}***${d.source.data.name}`)
+                .attr("stroke-width", d => {
+                    const target = d.target.data.name;
+                    const source = d.source.data.imports.find(s => s.name === target);
+                    return source ? source.w * 10 * draw_parameters[0] : 1;
+                })
+                // .attr('opacity', d => ["pos", "neg", "neu"].includes(d.sent) && !draw_parameters[{
+                //     "pos": 1,
+                //     "neg": 2,
+                //     "neu": 3
+                // }[d.sent]] ? 0 : draw_parameters[4])
+                .attr('opacity', d => calculate_opacity(d))
+
+                .style("stroke", d => calculate_color(d))
+                .style("fill", "none"); // Ensure paths are not filled
+
+
+            node = node
+                .data(root.leaves())
+                .enter().append("text")
+                .attr("class", "node")
+                .attr("dy", "0.31em")
+                .attr("transform", d => "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"))
+                .attr("text-anchor", d => d.x < 180 ? "start" : "end")
+                .text(d => d.data.key)
+                .on('mouseover', d_parent => {
+                    if (selectionState === "none") {
+                        name = d_parent.data.name
+                        d3.selectAll("[id*='***']")
+                            .transition().duration(transition_time)
+                            .attr('opacity', 0)
+                        d3.selectAll("[id*='" + name + "']")
+                            .transition().duration(transition_time)
+                            .attr('opacity', function (d) {
+                                return calculate_opacity(d)
+                            })
+                    }
+
+                })
+                .on('mouseout', d_parent => {
+                    if (selectionState === "none") {
+                        name = d_parent.data.name
+                        d3.selectAll("[id*='***']")
+                            .transition().duration(transition_time)
+                            .attr('opacity', function (d) {
+                                return calculate_opacity(d)
+                            })
+                    }
+                })
+                .on('click', d_parent => {
+                    name = d_parent.data.name
+                    show_selected(d_parent)
+                })
+
+
+            function show_selected(node) {
+                console.log(selectionState)
+                console.log(selectedNodeId)
+                const transitionTime = 300;
+                const opacityHidden = 0;
+                const opacityVisible = 1;
+                const markerEndArrow = 'url(#arrow)';
+                const markerEndNone = '';
+
+                function applyTransition(link, opacity, markerEnd) {
+                    link.transition().duration(transitionTime)
+                        .attr('opacity', function (d) {
+                            sent = d.source.data.imports.find(s => s.name === d.target.data.name).sent
+
+
+                            if (opacity === 1) {
+                                return ["pos", "neg", "neu"].includes(sent) && !draw_parameters[{
+                                    "pos": 1,
+                                    "neg": 2,
+                                    "neu": 3
+                                }[sent]] ? 0 : draw_parameters[4]
+                            }
+                            return 0
+                        })
+
+                        .attr('marker-end', markerEnd);
+                }
+
+                if (-1 === selectedNodeId || node.data.name === selectedNodeId) {
+                    switch (selectionState) {
+                        case "none":
+                            applyTransition(link, opacityHidden, markerEndNone);
+                            selection = link.filter(d => d.source === node);
+                            applyTransition(selection, opacityVisible, markerEndArrow);
+                            selectionState = "node_out";
+                            selectedNodeId = node.data.name;
+                            console.log(node)
+                            console.log(node.data.name)
+                            break;
+                        case "node_out":
+                            applyTransition(link, opacityHidden, markerEndNone);
+                            selection = link.filter(d => d.target === node);
+                            applyTransition(selection, opacityVisible, markerEndArrow);
+                            selectionState = "node_in";
+                            selectedNodeId = node.data.name;
+                            break;
+                        case "node_in":
+                            applyTransition(link, opacityVisible, markerEndNone);
+                            selectionState = "none";
+                            selectedNodeId = -1;
+                            break;
+                        case "link":
+                            applyTransition(link, opacityVisible, markerEndNone);
+                            selectionState = "none";
+                            selectedNodeId = -1;
+                            break;
+                    }
+                } else {
+                    applyTransition(link, opacityHidden, markerEndNone);
+                    selectedLinks = link.filter(d => {
+                        return d.source.data.name === selectedNodeId && d.target.data.name === node.data.name
+                    });
+                    if (selectedLinks.size() > 0) {
+                        applyTransition(selectedLinks, opacityVisible, markerEndArrow);
+                        selectionState = "link";
+                        selectedNodeId = -1;
+                    } else {
+                        applyTransition(link, opacityVisible, markerEndNone);
+                        selectionState = "none";
+                        selectedNodeId = -1;
+                    }
+                }
+            }
+        });
+
+
+        // Lazily construct the package hierarchy from class names.
+        function packageHierarchy(classes) {
+            var map = {};
+
+            function find(name, data) {
+                var node = map[name], i;
+                if (!node) {
+                    node = map[name] = data || {name: name, children: []};
+                    if (name.length) {
+                        node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+                        node.parent.children.push(node);
+                        node.key = name.substring(i + 1);
+                    }
+                }
+                return node;
+            }
+
+            classes.forEach(function (d) {
+                find(d.name, d);
+            });
+            return d3.hierarchy(map[""]);
+        }
+
+        // Return a list of imports for the given array of nodes.
+        function packageImports(nodes) {
+            var map = {},
+                imports = [];
+            // Compute a map from name to node.
+            nodes.forEach(function (d) {
+                map[d.data.name] = d;
+            });
+            // For each import, construct a link from the source to target node.
+            nodes.forEach(function (d) {
+                if (d.data.imports) d.data.imports.forEach(function (i) {
+                    // d.data.w_l = i["w"]
+                    // d.data.sent = i["sent"]
+                    imports.push(map[d.data.name].path(map[i["name"]]));
+                });
+            });
+            return imports;
+        }
+    }
+
+</script>
+</body>
+
+</html>
