@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="en">
 <meta charset="utf-8">
 <style>
 
@@ -117,7 +118,7 @@
 </head>
 
 <div class="container">
-    <h1>ARElight-0.24.0 Demo</h1>
+    <h1>ARElight-0.25.0</h1>
 </div>
 
 <div class="container">
@@ -162,10 +163,10 @@
                     </div>
                     <form method=post enctype=multipart/form-data>
                         <div>
-                            <input type=file name=file id="file" onchange="checkFileSelected()"><br><br>
+                            <input type=file name=file id="file" onchange="checkFileSelected()" lang="en"><br><br>
                         </div>
                         <div>
-                            <input id="submit_data_BTN" type=submit value=Upload disabled>
+                            <input id="submit_data_BTN" type=submit value=Upload disabled lang="en">
                         </div>
                         <hr>
                         <div>
@@ -416,15 +417,28 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
+    function isChrome() {
+        // Get the user agent string
+        const userAgent = navigator.userAgent;
+
+        // Check if the user agent contains 'Chrome' and does not contain 'Edg' (Edge) or 'OPR' (Opera)
+        return userAgent.includes('Chrome') && !userAgent.includes('Edg') && !userAgent.includes('OPR');
+    }
+
+    // If the browser is not Chrome, show an alert
+    if (!isChrome()) {
+        alert("Please use Google Chrome for the best experience. Some functions may not work in Safari, Edge and other browsers.");
+    }
+
     function checkFileSelected() {
-            var fileInput = document.getElementById('file');
-            var submitButton = document.getElementById('submit_data_BTN');
-            if (fileInput.files.length > 0) {
-                submitButton.disabled = false;
-            } else {
-                submitButton.disabled = true;
-            }
+        var fileInput = document.getElementById('file');
+        var submitButton = document.getElementById('submit_data_BTN');
+        if (fileInput.files.length > 0) {
+            submitButton.disabled = false;
+        } else {
+            submitButton.disabled = true;
         }
+    }
 
     function getRandomSample(arr, sampleSize) {
         if (sampleSize > arr.length) {
@@ -466,7 +480,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(data),  // <<--- This is correct way to send JSON data in POST request body
         })
             .then(response => response.json())
             .then(data => {
@@ -478,7 +492,7 @@
     }
 
     function REQUEST_DATA(req, callback) {
-        fetch("http://127.0.0.1:8080/" + req, {
+        fetch("http://127.0.0.1:<---SERVER-PORT--->/" + req, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -504,7 +518,6 @@
     // LOAD FILES INTO SELECTORS & VISUALISATION TRIGGERS
     //////////////////////////////////////////////////////////////////////////////
     function showFileDetails() {
-        console.log("file_status?file=" + document.getElementById('file_selector').value)
         REQUEST_DATA("file_status?file=" + document.getElementById('file_selector').value, (data) => {
             details = data.data;
             document.getElementById('file_details').innerText = JSON.stringify(details, null, 2);
@@ -575,43 +588,66 @@
     document.getElementById("file_selector_operations_A_BTN").addEventListener("click", function (e) {
         e.preventDefault(); // Prevents the default submit action
 
-        // Get selected option's text
-        var selector = document.getElementById("file_selector_operations_A");
-        var selectedText = selector.options[selector.selectedIndex].text;
-
-        // Create a new div for the selected file and remove button
-        var fileDiv = document.createElement("div");
-
-        // fileDiv.innerHTML = selectedText + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
-        fileDiv.innerHTML = "<button type='button' className='btn btn-outline-info btn-sm' style='border: none;' disabled>" +
-            selectedText + "</button>" + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
-
-        // Append this div to the selected files container
-        document.getElementById("file_selector_operations_A_selected_files").appendChild(fileDiv);
-
-        // Add event listener to the Remove button
-        fileDiv.querySelector(".remove-btn-A").addEventListener("click", function () {
-            fileDiv.remove(); // Remove the file entry on click
+        var selectedFilesCount = 0;
+        var selectedFilesContainer_A = document.getElementById("file_selector_operations_A_selected_files");
+        // Iterate over all child divs in the selected files container
+        selectedFilesContainer_A.childNodes.forEach(function (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
+                selectedFilesCount += 1
+            }
         });
+        if (selectedFilesCount === 0) {
+            // Get selected option's text
+            var selector = document.getElementById("file_selector_operations_A");
+            var selectedText = selector.options[selector.selectedIndex].text;
+
+            // Create a new div for the selected file and remove button
+            var fileDiv = document.createElement("div");
+
+            // fileDiv.innerHTML = selectedText + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
+            fileDiv.innerHTML = "<button type='button' className='btn btn-outline-info btn-sm' style='border: none;' disabled>" +
+                selectedText + "</button>" + " <button class='remove-btn-A btn btn-danger'>Remove</button>";
+
+            // Append this div to the selected files container
+            document.getElementById("file_selector_operations_A_selected_files").appendChild(fileDiv);
+
+            // Add event listener to the Remove button
+            fileDiv.querySelector(".remove-btn-A").addEventListener("click", function () {
+                fileDiv.remove(); // Remove the file entry on click
+            });
+        }
+
+
     });
     document.getElementById("file_selector_operations_B_BTN").addEventListener("click", function (e) {
         e.preventDefault(); // Prevents the default submit action
 
-        // Get selected option's text
-        var selector = document.getElementById("file_selector_operations_B");
-        var selectedText = selector.options[selector.selectedIndex].text;
 
-        // Create a new div for the selected file and remove button
-        var fileDiv = document.createElement("div");
-        fileDiv.innerHTML = selectedText + " <button class='remove-btn-B btn btn-danger'>Remove</button>";
-
-        // Append this div to the selected files container
-        document.getElementById("file_selector_operations_B_selected_files").appendChild(fileDiv);
-
-        // Add event listener to the Remove button
-        fileDiv.querySelector(".remove-btn-B").addEventListener("click", function () {
-            fileDiv.remove(); // Remove the file entry on click
+        var selectedFilesArrayCount = 0;
+        var selectedFilesContainer_B = document.getElementById("file_selector_operations_B_selected_files");
+        selectedFilesContainer_B.childNodes.forEach(function (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
+                selectedFilesArrayCount += 1
+            }
         });
+        if (selectedFilesArrayCount === 0) {
+            // Get selected option's text
+            var selector = document.getElementById("file_selector_operations_B");
+            var selectedText = selector.options[selector.selectedIndex].text;
+
+            // Create a new div for the selected file and remove button
+            var fileDiv = document.createElement("div");
+            fileDiv.innerHTML = selectedText + " <button class='remove-btn-B btn btn-danger'>Remove</button>";
+
+            // Append this div to the selected files container
+            document.getElementById("file_selector_operations_B_selected_files").appendChild(fileDiv);
+
+            // Add event listener to the Remove button
+            fileDiv.querySelector(".remove-btn-B").addEventListener("click", function () {
+                fileDiv.remove(); // Remove the file entry on click
+            });
+        }
+
     });
 
     function OperationGenerate() {
@@ -625,25 +661,26 @@
         // Iterate over all child divs in the selected files container
         selectedFilesContainer_A.childNodes.forEach(function (node) {
             if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
-                var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
+                var text = node.childNodes[0].textContent; // Get the text excluding the button
                 selectedFilesArray_A.push(text);
             }
         });
         selectedFilesContainer_B.childNodes.forEach(function (node) {
             if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
-                var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
+                var text = node.childNodes[0].textContent; // Get the text excluding the button
                 selectedFilesArray_B.push(text);
             }
         });
 
-        UPLOAD_DATA({
+        res = {
             "operation": {
                 "A": selectedFilesArray_A,
                 "B": selectedFilesArray_B,
                 "O": selectedOperation,
                 "D": selectedNewDatasetName
             }
-        })
+        }
+        UPLOAD_DATA(res)
     }
 
 
@@ -656,7 +693,7 @@
     document.querySelector('#radial_BTN').classList.remove('disabled');
     document.querySelector('#force_BTN').classList.remove('disabled');
     document.querySelector('#force_BTN').classList.add('disabled');
-    const folder_with_datasets_path = "http://127.0.0.1:8080/"
+    const folder_with_datasets_path = "http://127.0.0.1:<---SERVER-PORT--->/"
     let previous_dataset = ""
     const optimal_numer_of_nodes = 50
     const optimal_numer_of_links = 1000
@@ -756,7 +793,6 @@
     }
 
     async function getDetails(links, draw_parameters, basis) {
-        console.log(basis)
         try {
             const response = await fetch('/details', {
                 method: 'POST',
@@ -770,11 +806,10 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            console.log('Success:', data);
 
-            if (data["results"].length > 10){
+            if (data["results"].length > 10) {
                 createCards(getRandomSample(data["results"], 10))
-            }else{
+            } else {
                 createCards(data["results"])
             }
 
@@ -835,7 +870,6 @@
 
         d3.json(folder_with_datasets_path + "/get_force_data?file=" + dataset_name, function (error, graph) {
 
-            console.log(graph)
             console.log("previous & new datasets:", previous_dataset, dataset_name)
             if (previous_dataset === dataset_name) {
                 graph.nodes = filterNodes(graph.nodes, draw_parameters[6])
@@ -955,7 +989,6 @@
                 } else {
                     applyTransition(link, opacityHidden, markerEndNone);
                     selectedLinks = link.filter(d => d.source.id === selectedNodeId && d.target.id === node.id);
-                    console.log(selectedLinks.size())
                     if (selectedLinks.size() > 0) {
                         applyTransition(selectedLinks, opacityVisible, markerEndArrow);
                         selectionState = "link";
@@ -976,7 +1009,6 @@
                         }
                     });
                     getDetails(visibleLinks, draw_parameters, graph.basis).then(data => {
-                        console.log(data["results"]);
                     }).catch(err => console.log(err));
                 }, transitionTime * 4);
             }
@@ -1181,8 +1213,6 @@
 
 
             function show_selected(node) {
-                console.log(selectionState)
-                console.log(selectedNodeId)
                 const transitionTime = 300;
                 const opacityHidden = 0;
                 const opacityVisible = 1;
@@ -1216,8 +1246,6 @@
                             applyTransition(selection, opacityVisible, markerEndArrow);
                             selectionState = "node_out";
                             selectedNodeId = node.data.name;
-                            console.log(node)
-                            console.log(node.data.name)
                             break;
                         case "node_out":
                             applyTransition(link, opacityHidden, markerEndNone);
@@ -1252,6 +1280,23 @@
                         selectedNodeId = -1;
                     }
                 }
+
+                setTimeout(() => {
+                    let visibleLinks = [];
+                    d3.selectAll(".link").each(function (d) {
+                        if (d3.select(this).attr("opacity") > 0) {
+                            visibleLinks.push({
+                                "sent": d.target.data.imports[0].sent,
+                                "source": {"id": d.source.data.name},
+                                "target": {"id": d.target.data.name}
+                            });
+                        }
+                    });
+                    d3.json(folder_with_datasets_path + "/get_force_data?file=" + dataset_name, function (error, graph) {
+                        getDetails(visibleLinks, draw_parameters, graph.basis).then(data => {
+                        }).catch(err => console.log(err));
+                    })
+                }, transitionTime * 4);
             }
         });
 

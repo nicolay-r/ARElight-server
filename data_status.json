@@ -1,1 +1,8 @@
-{"server": {}, "data": {"/Users/kmax/PycharmProjects/ARElight-main/raw_data/example.txt": {"ner-model-name": "ner_ontonotes_bert", "ner-types": "ORG|PERSON|LOC|GPE", "terms-per-context": "50", "sentence-parser": "nltk:russian", "text-b-type": "nli_m", "tokens-per-context": "128", "batch-size": "10"}, "/home/nicolay/proj/ARElight/raw_data/example.txt": {"ner-model-name": "ner_ontonotes_bert", "ner-types": "ORG|PERSON|LOC|GPE", "terms-per-context": "50", "sentence-parser": "nltk:russian", "text-b-type": "nli_m", "tokens-per-context": "128", "batch-size": "10", "data_status": "completed"}, "/home/nicolay/proj/ARElight/raw_data/ru_ukr.txt": {"ner-model-name": "ner_ontonotes_bert", "ner-types": "ORG|PERSON|LOC|GPE", "terms-per-context": "50", "sentence-parser": "nltk:russian", "text-b-type": "nli_m", "tokens-per-context": "128", "bert-framework": "opennre", "batch-size": "10", "stemmer": "mystem", "inference-writer": "sqlite3", "pretrained-bert": "DeepPavlov/rubert-base-cased", "bert-torch-checkpoint": "ra4-rsr1_DeepPavlov-rubert-base-cased_cls.pth.tar", "backend": "d3js_graphs", "data_status": "completed"}}}
+{
+  "server": {
+    "port": 5000
+  },
+  "data": {
+
+  }
+}
