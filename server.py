@@ -64,6 +64,7 @@ os.makedirs('data', exist_ok=True)
 def __clean_filename__(filename):
     return filename.replace(".txt", "").replace(".json", "").replace(".csv", "").replace(" ","")
 
+
 def generate_ARELIGHT_PARAMETERS():
     html_code = ""
     for parameter_name, parameter_info in SETTINGS["arelight_args"].items():
@@ -147,7 +148,6 @@ def __get_html_template_busy__():
         )
 
 
-
 @app.route('/file_status', methods=['GET', 'POST'])
 def get_file_status():
     file = request.args.get('file')
@@ -194,9 +194,7 @@ def get_details():
 
         print(record['s_val'], record["t_val"], record["label"])
 
-        # print("***")
         for c in conditions:
-            # print(c)
             counter = True
             for key in c:
                 if key == 'filename':
@@ -205,17 +203,13 @@ def get_details():
                     counter = False
                     break
             if counter:
-                # print("YES")
                 return True
-        # print("NOT FOUND")
         return False
 
     if request.is_json:
         data = request.get_json()
         links = data["links"]
-        draw_parameters = data["draw_parameters"]
         basis = data["basis"]
-        texts = []
 
         results = []
         for filename in basis:
@@ -278,7 +272,6 @@ def get_radial_data():
     return jsonify([{"w": 0.5, "imports": [], "name": "DATASET NOT EXIST"}])
 
 
-
 arelight_thread = Thread()
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -317,14 +310,7 @@ def upload_file():
         except Exception as e:
             print(f'error: {str(e)}')
 
-
     if not is_process_running():
-
-        # if request.method == 'GET':
-        #     print("hihihi")
-        #     obj = request.args.to_dict()
-        #     if 'operation' in obj:
-        #         print(obj['operation'].keys())
 
         if request.method == 'POST':
 
@@ -383,8 +369,6 @@ def upload_file():
 
                     __set_data_status__(new_dataset_name, {"new dataset":"generated from operation"})
                 return render_template_string(__get_html_template_busy__())
-
-
 
         return render_template_string(__get_html_template__())
     else:
