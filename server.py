@@ -1,3 +1,4 @@
+from arelight.run.infer import create_infer_parser
 from flask import Flask, request, render_template_string, jsonify
 from threading import Thread
 import os
@@ -10,12 +11,14 @@ from tqdm import tqdm
 
 from flask_cors import CORS
 
+from utils import do_format, extract
 
 ARELIGHT_IS_RUNNING = False
 
 cur_dir = dirname(realpath(__file__))
 
 data_status_file = 'data_status.json'
+
 
 SETTINGS = {
     "installed_arelight": "arelight.run.infer",
@@ -29,21 +32,8 @@ SETTINGS = {
         "sampling-framework": "arekit"
     },
     "arelight_args": {
-        "ner-model-name": {"list": ["ner_ontonotes_bert_mult"]},
-        "ner-types": {"check": ["ORG", "PERSON", "LOC", "GPE"]},
-        "terms-per-context": {"field": 50},
-        "sentence-parser": {"list": ["nltk:russian"]},
-        "text-b-type": {"list": ["nli_m"]},
-        "tokens-per-context": {"field": 128},
-        "bert-framework": {"list": ["opennre"]},
-        "translate-framework": {"list": ["googletrans"]},
-        "translate-text": {"list": ["en:ru"]},
-        "batch-size": {"field": 10},
-        "stemmer": {"list": ["mystem"]},
-        "inference-writer": {"list": ["sqlite3"]},
-        "pretrained-bert": {"list": ["DeepPavlov/rubert-base-cased"]},
-        "bert-torch-checkpoint": {"list": ["ra4-rsr1_DeepPavlov-rubert-base-cased_cls.pth.tar"]},
-        "backend": {"list": ["d3js_graphs"]}
+        k: do_format(v, is_check=False)
+        for k, v in extract(create_infer_parser())["schema"].items()
     },
     "OP_UNION" : "UNION",
     "OP_INTERSECTION": "INTERSECTION",
