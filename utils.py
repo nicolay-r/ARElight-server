@@ -1,4 +1,9 @@
+from os.path import dirname, realpath
+
 from argparse_to_json import convert_parser_to_json
+
+
+CUR_DIR = dirname(realpath(__file__))
 
 
 def do_format(entry, is_check=False):

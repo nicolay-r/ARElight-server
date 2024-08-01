@@ -6,16 +6,14 @@ import json
 import subprocess
 
 from arelight.arekit.sample_service import AREkitSamplesService
-from os.path import join, dirname, realpath
+from os.path import join
 from tqdm import tqdm
 
 from flask_cors import CORS
 
-from utils import do_format, extract
+from arelight_preset import CONSTANT_INFER_PARAMS, CONSTANT_INFER_IGNORE_PARAMS
+from utils import do_format, extract, CUR_DIR
 
-ARELIGHT_IS_RUNNING = False
-
-cur_dir = dirname(realpath(__file__))
 
 data_status_file = 'data_status.json'
 
@@ -23,17 +21,14 @@ data_status_file = 'data_status.json'
 SETTINGS = {
     "installed_arelight": "arelight.run.infer",
     "installed_operations": "arelight.run.operations",
-    "path_to_raw_data": join(cur_dir, r"raw_data"),
-    "path_to_arelight_log": join(cur_dir, r"arelight.log"),
-    "path_to_force_data": join(cur_dir, r"output", r"force"),
-    "path_to_radial_data": join(cur_dir, r"output", r"radial"),
-    "path_to_sql_data": join(cur_dir, r"output"),
-    "arelight_const_args": {
-        "sampling-framework": "arekit"
-    },
+    "path_to_raw_data": join(CUR_DIR, r"raw_data"),
+    "path_to_force_data": join(CONSTANT_INFER_PARAMS["output_template"], r"force"),
+    "path_to_radial_data": join(CONSTANT_INFER_PARAMS["output_template"], r"radial"),
+    "arelight_const_args": CONSTANT_INFER_PARAMS,
     "arelight_args": {
         k: do_format(v, is_check=False)
         for k, v in extract(create_infer_parser())["schema"].items()
+        if k not in CONSTANT_INFER_PARAMS and k not in CONSTANT_INFER_IGNORE_PARAMS
     },
     "OP_UNION" : "UNION",
     "OP_INTERSECTION": "INTERSECTION",
@@ -52,7 +47,7 @@ os.makedirs('data', exist_ok=True)
 
 
 def __clean_filename__(filename):
-    return filename.replace(".txt", "").replace(".json", "").replace(".csv", "").replace(" ","")
+    return filename.replace(".txt", "").replace(".json", "").replace(".csv", "").replace(" ", "")
 
 
 def generate_ARELIGHT_PARAMETERS():
@@ -93,10 +88,10 @@ def generate_ARELIGHT_PARAMETERS():
 
 def __generate_arelight_log__(clean=False):
     if clean:
-        open(SETTINGS["path_to_arelight_log"], "w").write("")
+        open(SETTINGS["arelight_const_args"]["log_file"], "w").write("")
         return None
     html_code = ""
-    for line in open(SETTINGS["path_to_arelight_log"], "r").readlines():
+    for line in open(SETTINGS["arelight_const_args"]["log_file"], "r").readlines():
         html_code += "\n<p>" + line + "</p>"
     return html_code
 
@@ -216,10 +211,10 @@ def get_details():
             for c in conditions:
                 print(c)
 
-            print("connecting to ", join(SETTINGS["path_to_sql_data"], filename+"-test.sqlite"))
+            print("connecting to ", join(SETTINGS["arelight_const_args"]["output_template"], filename + "-test.sqlite"))
 
             data_it = AREkitSamplesService.iter_samples_and_predict_sqlite3(
-                sqlite_filepath=join(SETTINGS["path_to_sql_data"], filename+"-test"),
+                sqlite_filepath=join(SETTINGS["arelight_const_args"]["output_template"], filename + "-test"),
                 samples_table_name="contents",
                 predict_table_name="open_nre_bert",
                 filter_record_func=lambda record: filter_records(record, conditions))
@@ -274,27 +269,29 @@ def upload_file():
             args = [f'--{key}={value}' for key, value in options.items() if key != 'status']
             for arg in SETTINGS["arelight_const_args"].keys():
                 args += ["--" + arg + "=" + SETTINGS["arelight_const_args"][arg]]
-            print("     RUNNING ARELIGHT")
+            print("\tRUNNING ARELIGHT")
             __generate_arelight_log__(clean=True)
-            print(['python3', '-m', SETTINGS["installed_arelight"], "--from-files", filename, "--log-file", SETTINGS["path_to_arelight_log"]] + args)
-            subprocess.run(['python3', '-m', SETTINGS["installed_arelight"], "--from-files", filename, "--log-file", SETTINGS["path_to_arelight_log"]] + args, check=True)
+            subprocess.run(['python3', '-m', SETTINGS["installed_arelight"],
+                            "--from-files", filename,
+                            "--log-file", SETTINGS["path_to_arelight_log"]] +
+                            args, check=True)
             __update_data_status__(filename, 'completed')
         except Exception as e:
             __update_data_status__(filename, f'error: {str(e)}')
 
     def run_operation(A, B, operation, new_dataset_name):
         try:
-            print("     RUNNING OPERATION")
+            print("\tRUNNING OPERATION")
             __generate_arelight_log__(clean=True)
             command = ['python3', '-m', SETTINGS["installed_operations"],
                        "--weights", "y",
-                       "-o", SETTINGS["path_to_sql_data"],
+                       "-o", SETTINGS["arelight_const_args"]["output_template"],
                        "--operation", operation,
                        "--graph_a_file", A,
                        "--graph_b_file", B,
                        "--name", new_dataset_name,
-                       "--description", A+"___"+operation+"___"+B
-                   ]
+                       "--description", A +"___" + operation +"___" + B
+                       ]
             print(command)
             subprocess.run(command, check=True)
         except Exception as e:
@@ -327,10 +324,10 @@ def upload_file():
 
                     if data['operation']["D"] == "":
                         new_dataset_name = (
-                                            "[OPERATION]"+
-                                            __clean_filename__("+".join(A_files))+
-                                            "___"+operation+"___"+
-                                            __clean_filename__("+".join(B_files))
+                                "[OPERATION]" +
+                                __clean_filename__("+".join(A_files)) +
+                                "___"+operation+"___" +
+                                __clean_filename__("+".join(B_files))
                         )
 
                     temporary_A = os.path.join(SETTINGS["path_to_force_data"], "[OPERATION]temporary_A.json")
@@ -366,5 +363,5 @@ def upload_file():
 
 
 if __name__ == '__main__':
-    open(SETTINGS["path_to_arelight_log"], "w").write("")
+    open(SETTINGS["arelight_const_args"]["log_file"], "w").write("")
     app.run(port=SETTINGS["port"], debug=True)
