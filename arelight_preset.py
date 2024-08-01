@@ -10,4 +10,4 @@ CONSTANT_INFER_PARAMS = {
     "synonyms_filepath": None
 }
 
-CONSTANT_INFER_IGNORE_PARAMS = {"from_files", "d3js_label_names", "labels_fmt", "csv_sep"}
+CONSTANT_INFER_IGNORE_PARAMS = {"from_files", "d3js_label_names", "labels_fmt", "csv_sep", "csv_column"}
