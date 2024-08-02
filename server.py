@@ -278,7 +278,6 @@ def upload_file():
     def run_arelight(filename, options):
 
         def k2arg(key):
-            print(">>>>>>>>", key, "->", key.replace('_', '-'))
             return key.replace('_', '-')
 
         try:
