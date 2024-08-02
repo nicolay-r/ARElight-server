@@ -28,3 +28,20 @@ def extract(parser):
     for k, v in values.items():
         json_data["schema"][k]["default"] = v
     return json_data
+
+
+def setup_preset(predefined_args, preset, ignored_params):
+    """ Assigning predefined settings.
+    """
+    for p, v in preset.items():
+        if p in ignored_params:
+            continue
+        target = predefined_args[p]
+        if "list" in target:
+            target['list'].remove(v)
+            # Place element in the beginning
+            target['list'].insert(0, v)
+        if "integer" in target:
+            target["field"] = v
+        if "string" in target:
+            target["list_type"][0] = v

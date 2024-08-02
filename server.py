@@ -11,9 +11,8 @@ from tqdm import tqdm
 
 from flask_cors import CORS
 
-from arelight_preset import CONSTANT_INFER_PARAMS, CONSTANT_INFER_IGNORE_PARAMS
-from utils import do_format, extract, CUR_DIR
-
+from arelight_preset import CONSTANT_INFER_PARAMS, CONSTANT_INFER_IGNORE_PARAMS, UI_INFER_PRESETS
+from utils import do_format, extract, CUR_DIR, setup_preset
 
 data_status_file = 'data_status.json'
 
@@ -37,13 +36,18 @@ SETTINGS = {
 }
 
 
-
 # app = Flask(__name__)
 app = Flask("ARElight-main")
 CORS(app)
 
 # Ensure data directory exists
 os.makedirs('data', exist_ok=True)
+
+
+def __get_log_filepath():
+    """ Return ARElight textual inference log file.
+    """
+    return SETTINGS["arelight_const_args"]["log_file"]
 
 
 def __clean_filename__(filename):
@@ -88,24 +92,31 @@ def generate_ARELIGHT_PARAMETERS():
 
 def __generate_arelight_log__(clean=False):
     if clean:
-        open(SETTINGS["arelight_const_args"]["log_file"], "w").write("")
+        with open(__get_log_filepath(), "w") as f:
+            f.write("")
         return None
     html_code = ""
-    for line in open(SETTINGS["arelight_const_args"]["log_file"], "r").readlines():
-        html_code += "\n<p>" + line + "</p>"
-    return html_code
+    with open(__get_log_filepath(), "r") as f:
+        for line in f.readlines():
+            html_code += "\n<p>" + line + "</p>"
+        return html_code
 
 
 def __set_data_status__(filename, data):
     filename = os.path.basename(filename)
-    data_status = json.load(open(data_status_file, "r"))
+    if data_status_file is None or data_status_file == '':
+        raise Exception(f"Data status file is '{data_status_file}'")
+    with open(data_status_file, "r") as f:
+        data_status = json.load(f)
     data_status["data"][filename] = data
-    json.dump(data_status, open(data_status_file, "w"))
+    with open(data_status_file, "w") as f:
+        json.dump(data_status, f)
 
 
 def __get_data_status__(filename):
     filename = os.path.basename(filename)
-    return json.load(open(data_status_file, "r"))["data"][filename]
+    with open(data_status_file, "r") as f:
+        return json.load(f)["data"][filename]
 
 
 def __update_data_status__(filename, status):
@@ -265,16 +276,26 @@ def upload_file():
         return arelight_thread.is_alive()
 
     def run_arelight(filename, options):
+
+        def k2arg(key):
+            print(">>>>>>>>", key, "->", key.replace('_', '-'))
+            return key.replace('_', '-')
+
         try:
-            args = [f'--{key}={value}' for key, value in options.items() if key != 'status']
-            for arg in SETTINGS["arelight_const_args"].keys():
-                args += ["--" + arg + "=" + SETTINGS["arelight_const_args"][arg]]
+
+            # Combine constant with non-constant options.
+            all_options = options | SETTINGS["arelight_const_args"]
+
+            # Process all the options.
+            args = [f'--{k2arg(key)}={value}'
+                    for key, value in all_options.items() if
+                    (key != 'status') and (value not in [None, 'None', ''])]
+
             print("\tRUNNING ARELIGHT")
+
             __generate_arelight_log__(clean=True)
-            subprocess.run(['python3', '-m', SETTINGS["installed_arelight"],
-                            "--from-files", filename,
-                            "--log-file", SETTINGS["path_to_arelight_log"]] +
-                            args, check=True)
+            subprocess_params = ['python3', '-m', SETTINGS["installed_arelight"], "--from-files", filename] + args
+            subprocess.run(subprocess_params, check=True)
             __update_data_status__(filename, 'completed')
         except Exception as e:
             __update_data_status__(filename, f'error: {str(e)}')
@@ -363,5 +384,13 @@ def upload_file():
 
 
 if __name__ == '__main__':
-    open(SETTINGS["arelight_const_args"]["log_file"], "w").write("")
+
+    # Setup preset.
+    setup_preset(predefined_args=SETTINGS["arelight_args"], preset=UI_INFER_PRESETS["russian"],
+                 ignored_params=CONSTANT_INFER_IGNORE_PARAMS)
+
+    # Guarantee the empty file for the logging???
+    with open(__get_log_filepath(), "w") as f:
+        f.write("")
+
     app.run(port=SETTINGS["port"], debug=True)
