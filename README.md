@@ -12,7 +12,7 @@ python3 server.py
 
 You may follow the UI page at `http://127.0.0.1:8000/`
 
-![image](https://github.com/nicolay-r/ARElight/assets/14871187/341f3b51-d639-46b6-83fe-99b542b1751b)
+<img width="1512" alt="interface" src="https://github.com/user-attachments/assets/552c78ae-5b49-4778-8070-10b913ebcf30" />
 
 ## Layout of the files in output
 ```
