@@ -1,3 +1,4 @@
+from arelight.arekit.sample_service import AREkitSamplesService
 from arelight.run.infer import create_infer_parser
 from flask import Flask, request, render_template_string, jsonify
 from threading import Thread
@@ -5,7 +6,6 @@ import os
 import json
 import subprocess
 
-from arelight.arekit.sample_service import AREkitSamplesService
 from os.path import join
 from tqdm import tqdm
 
@@ -29,7 +29,7 @@ SETTINGS = {
         for k, v in extract(create_infer_parser())["schema"].items()
         if k not in CONSTANT_INFER_PARAMS and k not in CONSTANT_INFER_IGNORE_PARAMS
     },
-    "OP_UNION" : "UNION",
+    "OP_UNION": "UNION",
     "OP_INTERSECTION": "INTERSECTION",
     "OP_DIFFERENCE": "DIFFERENCE",
     "port": json.load(open(data_status_file, "r"))["server"]["port"]
@@ -374,7 +374,7 @@ def upload_file():
 
                     run_operation(temporary_A, temporary_B, operation, new_dataset_name)
 
-                    __set_data_status__(new_dataset_name, {"new dataset":"generated from operation"})
+                    __set_data_status__(new_dataset_name, {"new dataset": "generated from operation"})
                 return render_template_string(__get_html_template_busy__())
 
         return render_template_string(__get_html_template__())
