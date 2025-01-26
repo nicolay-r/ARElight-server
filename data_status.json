@@ -1,1 +1,7 @@
-{"server": {"port": 8000}, "data": {"example": {"terms_per_context": "50", "sentence_parser": "nltk:russian", "stemmer": "None", "ner_model_name": "ner_ontonotes_bert_mult", "ner_types": "ORG|PERSON|LOC|GPE", "inference_writer": "sqlite3", "translate_framework": "googletrans", "translate_entity": "None", "translate_text": "auto:ru", "docs_limit": "", "text_b_type": "qa_m", "pretrained_bert": "DeepPavlov/rubert-base-cased", "batch_size": "10", "tokens_per_context": "128", "bert_torch_checkpoint": "ra4-rsr1_DeepPavlov-rubert-base-cased_cls.pth.tar", "device_type": "cpu"}, "example-en": {"terms_per_context": "50", "sentence_parser": "nltk:russian", "stemmer": "None", "ner_model_name": "ner_ontonotes_bert_mult", "ner_types": "ORG|PERSON|LOC|GPE", "inference_writer": "sqlite3", "translate_framework": "googletrans", "translate_entity": "None", "translate_text": "auto:ru", "docs_limit": "", "text_b_type": "qa_m", "pretrained_bert": "DeepPavlov/rubert-base-cased", "batch_size": "10", "tokens_per_context": "128", "bert_torch_checkpoint": "ra4-rsr1_DeepPavlov-rubert-base-cased_cls.pth.tar", "device_type": "cpu", "data_status": "completed"}}}
+{
+    "server": {
+        "port": 8000
+    },
+    "data": {
+    }
+}
