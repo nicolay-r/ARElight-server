@@ -1,5 +1,6 @@
 from os.path import dirname, realpath
 
+import sh
 from argparse_to_json import convert_parser_to_json
 
 
@@ -45,3 +46,9 @@ def setup_preset(predefined_args, preset, ignored_params):
             target["field"] = v
         if "string" in target:
             target["list_type"][0] = v
+
+
+def iter_last_n_lines(filepath, n):
+    lines = list(sh.tail("-n", n, filepath, _iter=True))
+    for line in reversed(lines):
+        yield line

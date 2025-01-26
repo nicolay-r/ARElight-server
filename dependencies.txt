@@ -1,3 +1,4 @@
 arelight @ git+https://github.com/nicolay-r/arelight@v0.25.0
 flask
 flask_cors
+sh

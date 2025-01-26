@@ -12,7 +12,7 @@ from tqdm import tqdm
 from flask_cors import CORS
 
 from arelight_preset import CONSTANT_INFER_PARAMS, CONSTANT_INFER_IGNORE_PARAMS, UI_INFER_PRESETS
-from utils import do_format, extract, CUR_DIR, setup_preset
+from utils import do_format, extract, CUR_DIR, setup_preset, iter_last_n_lines
 
 data_status_file = 'data_status.json'
 
@@ -91,15 +91,21 @@ def generate_ARELIGHT_PARAMETERS():
 
 
 def __generate_arelight_log__(clean=False):
+
+    filepath = __get_log_filepath()
+
+    # Cleaning file if needed.
     if clean:
-        with open(__get_log_filepath(), "w") as f:
+        with open(filepath, "r") as f:
             f.write("")
-        return None
+            return None
+
+    # Get tail of the content.
     html_code = ""
-    with open(__get_log_filepath(), "r") as f:
-        for line in f.readlines():
-            html_code += "\n<p>" + line + "</p>"
-        return html_code
+    for line in iter_last_n_lines(filepath=filepath, n=10):
+        html_code += "\n<p>" + line + "</p>"
+
+    return html_code
 
 
 def __set_data_status__(filename, data):
@@ -110,7 +116,7 @@ def __set_data_status__(filename, data):
         data_status = json.load(f)
     data_status["data"][filename] = data
     with open(data_status_file, "w") as f:
-        json.dump(data_status, f)
+        json.dump(data_status, f, indent=4)
 
 
 def __get_data_status__(filename):
@@ -292,7 +298,6 @@ def upload_file():
 
             print("\tRUNNING ARELIGHT")
 
-            __generate_arelight_log__(clean=True)
             subprocess_params = ['python3', '-m', SETTINGS["installed_arelight"], "--from-files", filename] + args
             subprocess.run(subprocess_params, check=True)
             __update_data_status__(filename, 'completed')
@@ -336,7 +341,7 @@ def upload_file():
             # CASE 2 - when uploading names of datasets to perform graph operations
             elif request.is_json:
                 data = request.get_json()
-                if 'operation' in data and len(data['operation']["A"])>0 and len(data['operation']["B"])>0:
+                if 'operation' in data and len(data['operation']["A"]) > 0 and len(data['operation']["B"]) > 0:
                     A_files = list(map(lambda f: __clean_filename__(os.path.basename(f))+".json",data['operation']["A"]))
                     B_files = list(map(lambda f: __clean_filename__(os.path.basename(f))+".json",data['operation']["B"]))
                     operation = data['operation']["O"]
