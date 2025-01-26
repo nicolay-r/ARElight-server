@@ -101,11 +101,8 @@ def __generate_arelight_log__(clean=False):
             return None
 
     # Get tail of the content.
-    html_code = ""
-    for line in iter_last_n_lines(filepath=filepath, n=10):
-        html_code += "\n<p>" + line + "</p>"
-
-    return html_code
+    lines = list(iter_last_n_lines(filepath=filepath, n=10))
+    return "<p style=\"white-space: nowrap\">" + "<br/>".join(lines) + "</p>"
 
 
 def __set_data_status__(filename, data):
