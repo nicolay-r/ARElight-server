@@ -3,12 +3,6 @@
 <meta charset="utf-8">
 <style>
 
-
-    /*.links line {*/
-    /*    stroke: #999;*/
-    /*    stroke-opacity: 0.6;*/
-    /*}*/
-
     .nodes circle {
         stroke: #fff;
         stroke-width: 1.5px;
@@ -29,14 +23,6 @@
     svg {
         animation: pulsate 10s infinite ease-in-out;
     }
-
-
-    /*.link {*/
-    /*    stroke: steelblue;*/
-    /*    stroke-opacity: 0.5;*/
-    /*    fill: none;*/
-    /*    pointer-events: none;*/
-    /*}*/
 
     text {
         font: 10px sans-serif;
@@ -282,38 +268,6 @@
                         margin-left: 8px; /* Add some space between the select and the button */
                     }
                 </style>
-                <!--                <div id="animate_div">-->
-                <!--                    <div>-->
-                <!--                        <h4>Animate timeline based on existing datasets:</h4>-->
-                <!--                    </div>-->
-                <!--                    <form method="post" enctype="multipart/form-data">-->
-                <!--                        <div class="row">-->
-                <!--                            <div class="col-md-12">-->
-                <!--                                <small class="form-text text-muted">Name of new dataset:</small>-->
-                <!--                                <input type="text" class="form-control" id="animations_new_dataset_name">-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                        <div class="row">-->
-                <!--                            <div class="col-md-12">-->
-                <!--                                <small class="form-text text-muted">Select dataset for new frame:</small>-->
-                <!--                                <div class="input-group input-group-custom">-->
-                <!--                                    <select id="file_selector_animations" class="form-control">-->
-                <!--                                        &lt;!&ndash;                    UPLOADED FILES&ndash;&gt;-->
-                <!--                                    </select>-->
-                <!--                                    <input id="file_selector_animations_BTN" type="submit" value="Add"-->
-                <!--                                           class="btn btn-primary">-->
-                <!--                                </div>-->
-
-                <!--                                <small class="form-text text-muted">Selected frames:</small>-->
-                <!--                                <div id="file_selector_animations_selected_files">-->
-                <!--                                    &lt;!&ndash;                    SELECTED ANIMATION FILES&ndash;&gt;-->
-                <!--                                </div>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                        <button class="btn btn-light btn-secondary animate-btn" onclick="OperationAnimate()">Generate-->
-                <!--                        </button>-->
-                <!--                    </form>-->
-                <!--                </div>-->
 
                 <div id="operations_div">
                     <div>
@@ -548,39 +502,6 @@
 
     updateListOfFiles()
     showFileDetails()
-
-    //////////////////////////////////////////////////////////////////////////////
-    // ANIMATION TRIGGERS
-    //////////////////////////////////////////////////////////////////////////////
-    // document.getElementById("file_selector_animations_BTN").addEventListener("click", function (e) {
-    //     e.preventDefault(); // Prevents the default submit action
-    //     // Get selected option's text
-    //     var selector = document.getElementById("file_selector_animations");
-    //     var selectedText = selector.options[selector.selectedIndex].text;
-    //     // Create a new div for the selected file and remove button
-    //     var fileDiv = document.createElement("div");
-    //     fileDiv.innerHTML = selectedText + " <button type='button' class='remove-btn-Animation btn btn-danger'>Remove</button>";
-    //     // Append this div to the selected files container
-    //     document.getElementById("file_selector_animations_selected_files").appendChild(fileDiv);
-    //     // Add event listener to the Remove button
-    //     fileDiv.querySelector(".remove-btn-Animation").addEventListener("click", function () {
-    //         fileDiv.remove(); // Remove the file entry on click
-    //     });
-    // });
-
-    // function OperationAnimate() {
-    //     var selectedFilesArray = [];
-    //     var selectedFilesContainer = document.getElementById("file_selector_animations_selected_files");
-    //     var selectedNewDatasetName = document.getElementById("animations_new_dataset_name").value;
-    //     // Iterate over all child divs in the selected files container
-    //     selectedFilesContainer.childNodes.forEach(function (node) {
-    //         if (node.nodeType === Node.ELEMENT_NODE) { // Ensure it's an element node
-    //             var text = node.childNodes[0].nodeValue.trim(); // Get the text excluding the button
-    //             selectedFilesArray.push(text);
-    //         }
-    //     });
-    //     UPLOAD_DATA({"animate": selectedFilesArray, "filename": selectedNewDatasetName})
-    // }
 
     //////////////////////////////////////////////////////////////////////////////
     // OPERATION TRIGGERS
@@ -1335,8 +1256,6 @@
             // For each import, construct a link from the source to target node.
             nodes.forEach(function (d) {
                 if (d.data.imports) d.data.imports.forEach(function (i) {
-                    // d.data.w_l = i["w"]
-                    // d.data.sent = i["sent"]
                     imports.push(map[d.data.name].path(map[i["name"]]));
                 });
             });
