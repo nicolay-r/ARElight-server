@@ -134,7 +134,7 @@ def get_all_data_status():
 
 
 def __get_html_template__():
-    return (open("template_v2.html", "r").read()
+    return (open("template.html", "r").read()
             .replace("<!--ARELIGHT ARGUMENTS-->", generate_ARELIGHT_PARAMETERS())
             .replace("<---SERVER-PORT--->", str(SETTINGS["port"]))
     )

@@ -1,26 +1,26 @@
 # ARElight-server 0.25.1
 ![](https://img.shields.io/badge/Python-3.9-brightgreen.svg)
 
-This project represent an accessible version for the 
-[ARElight](https://github.com/nicolay-r/ARElight/tree/v0.25.1) system.
 
-## Usage
+This project represent an accessible Web GUI for the
+[ARElight](https://github.com/nicolay-r/ARElight/tree/v0.25.1) system, powered by [Flask](https://flask.palletsprojects.com/en/stable/).
 
-You have to first install 
-[ARElight](https://github.com/nicolay-r/ARElight/tree/v0.25.1) 
-to enable functionalities of the project: 
+<img width="1024" alt="interface" src="https://github.com/user-attachments/assets/552c78ae-5b49-4778-8070-10b913ebcf30" />
+
+# Installation
+
+You have to first install project dependencies: 
 ```bash
-pip install git+https://github.com/nicolay-r/arelight@v0.25.1
+pip install -r dependencies.txt
 ```
 
-Download `arelight-server` project and launch server:
+# Usage 
+
 ```bash
 python3 server.py
 ```
 
 You may follow the UI page at `http://127.0.0.1:8000/`
-
-<img width="1512" alt="interface" src="https://github.com/user-attachments/assets/552c78ae-5b49-4778-8070-10b913ebcf30" />
 
 ## Data Layout
 ```
